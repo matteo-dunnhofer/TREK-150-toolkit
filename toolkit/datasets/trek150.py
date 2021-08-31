@@ -65,13 +65,21 @@ class TREK150(object):
 
         print('Checking and downloading TREK-150. This process might take a while...')
 
+        url_fmt_trek150 = 'https://machinelearning.uniud.it/datasets/trek150/TREK-150-annotations.zip'
         url_fmt_ek = 'https://data.bris.ac.uk/datasets/3h91syskeag572hl6tvuovwv4d/videos/train/'
 
         if not os.path.isdir(root_dir):
             os.makedirs(root_dir)
-
-         # Download list of sequences
+    
+        # Download list of sequences
         seqs_file = os.path.join(root_dir, 'sequences.txt')
+        if not os.path.exists(seqs_file):
+            # Download the archive containing the annotations
+            anno_zip_file = os.path.join(root_dir, 'TREK-150-annotations.zip')
+            if not os.path.exists(anno_zip_file):
+                download(url_fmt_trek150, anno_zip_file)
+                extract(anno_zip_file, root_dir)
+
         assert os.path.exists(seqs_file)
 
         seq_names = np.genfromtxt(seqs_file, delimiter='\n', dtype="str")
@@ -91,7 +99,7 @@ class TREK150(object):
                (not os.path.exists(os.path.join(seq_dir, 'action_target.txt'))):
 
                 # Extract annotations
-                zip_file = os.path.join('./', 'annotations', seq_name + '.zip')
+                zip_file = os.path.join(root_dir, seq_name + '.zip')
         
                 print('\n\tExtracting annotation to %s...' % root_dir)
                 extract(zip_file, seq_dir)
