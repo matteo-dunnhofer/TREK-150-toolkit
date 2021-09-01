@@ -2,8 +2,10 @@
 ## The TREK-150 Benchmark Dataset and Toolkit
 
 <!-- start badges -->
-[![arXiv-2011.12263](https://img.shields.io/badge/arXiv-2011.12263-red.svg)](https://arxiv.org/abs/2011.12263)
+[![arXiv-2108.13665](https://img.shields.io/badge/arXiv-2108.13665-red.svg)](http://arxiv.org/abs/2108.13665)
 <!-- end badges -->
+
+![TREK-150](videoexamples.png)
 
 > Understanding human-object interactions is fundamental in First Person Vision (FPV). Tracking algorithms which follow the objects manipulated by the camera wearer can provide useful cues to effectively model such interactions. Visual tracking solutions available in the computer vision literature have significantly improved their performance in the last years for a large variety of target objects and tracking scenarios. However, despite a few previous attempts to exploit trackers in FPV applications, a methodical analysis of the performance of state-of-the-art trackers in this domain is still missing. In this paper, we fill the gap by presenting the first systematic study of object tracking in FPV. Our study extensively analyses the performance of recent visual trackers and baseline FPV trackers with respect to different aspects and considering a new performance measure. This is achieved through TREK-150, a novel benchmark dataset composed of 150 densely annotated video sequences. Our results show that object tracking in FPV is challenging, which suggests that more research efforts should be devoted to this problem so that tracking could benefit FPV tasks.
 
@@ -20,7 +22,7 @@ Christian Micheloni (1)
 
 
 ## Citing
-When using the dataset, please reference:
+When using the dataset or toolkit, please reference:
 
 ```
 @InProceedings{TREK150,
@@ -32,13 +34,14 @@ year = {2021}
 }
 ```
 
-## Details on the benchmark
+## The TREK-150 Dataset
 
-The annotations built for this dataset are contained in the ```annotations``` folder (you will find a zip archive for every sequence contained in TREK-150).
-Video frames of the TREK-150's sequences cannot be directly re-distributed due to the EK-55 policy. So you won't directly find them in this folder, but they will be automatically downloaded for you.
+The annotations produced for this dataset are contained in [this archive](https://machinelearning.uniud.it/datasets/trek150/TREK-150-annotations.zip) (you will find a zip archive for every sequence contained in TREK-150).
+Video frames of the TREK-150's sequences cannot be directly re-distributed due to the EK-55 policy. So you won't directly find them in the annotations folder, but they will be automatically downloaded for you.
 
 The full TREK-150 dataset can be built just by running
 ```
+pip install got10k
 git clone https://github.com/matteo-dunnhofer/TREK-150-toolkit
 cd TREK-150-toolkit
 python download.py
@@ -62,9 +65,9 @@ The code was tested with Python 3.7.9 and ```ffmpeg``` 4.0.2. All the temporary 
 The download process could take up to 24h to complete.
 
 ## Toolkit
-The toolkit available in this repositery allows you to replicate the results presented in our paper. Our code is built upon the [got10k-toolkit](https://github.com/got-10k/toolkit) and inherits the same tracker definition. Please check such a GitHub repository to learn how to use our toolkit. The only difference is that you have to change the name of the toolkit when importing the python sources (e.g. you have to use ```from toolkit.experiments import ExperimentTREK150``` instead of ```from got10k.experiments import ExperimentTREK150```)
+The code available in this repository allows you to replicate the experiments and results presented in our paper. Our code is built upon the [```got10k-toolkit```](https://github.com/got-10k/toolkit) toolkit and inherits the same tracker definition. Please check such a GitHub repository to learn how to use our toolkit. The only difference is that you have to change the name of the toolkit when importing the python sources (e.g. you have to use ```from toolkit.experiments import ExperimentTREK150``` instead of ```from got10k.experiments import ExperimentTREK150```). Otherwise, you can try to integrate the orginal ```got10k-toolkit``` with the sources of this repository (it should be easy).
 
-To run an examplar evaluation of the [SiamFC tracker](https://github.com/got-10k/siamfc) on the TREK-150 benchmark run the following commands.
+In the following, we provide examplar code to run an evaluation of the [SiamFC tracker](https://github.com/got-10k/siamfc) on the TREK-150 benchmark.
 ```
 git clone https://github.com/matteo-dunnhofer/TREK-150-toolkit
 cd TREK-150-toolkit
