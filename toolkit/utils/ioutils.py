@@ -5,6 +5,8 @@ import os
 import shutil
 import zipfile
 import sys
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def download(url, filename):
