@@ -51,6 +51,8 @@ class ExperimentTREK150(object):
             self.run_mse(tracker, visualize=visualize)
         elif protocol == 'rte':
             self.run_rte(tracker, visualize=visualize)
+        elif protocol == 'hoi':
+            self.run_hoi(tracker, visualize=visualize)
 
     def run_ope(self, tracker, visualize=False):
         print('Running tracker %s on %s...' % (
@@ -117,7 +119,6 @@ class ExperimentTREK150(object):
                 # record results
                 self._record(record_file, boxes)
 
-    ##### TO CHECK
     def run_rte(self, tracker, visualize=False):
         print('Running tracker %s on %s...' % (
             tracker.name, type(self.dataset).__name__))
@@ -197,6 +198,49 @@ class ExperimentTREK150(object):
             # record results
             self._record(record_file, boxes)
 
+    def run_hoi(self, tracker, visualize=False):
+        print('Running tracker %s on %s...' % (
+            tracker.name, type(self.dataset).__name__))
+
+        # loop over the complete dataset
+        for s, (img_files, anno) in enumerate(self.dataset):
+            seq_name = self.dataset.seq_names[s]
+            print('--Sequence %d/%d: %s' % (s + 1, len(self.dataset), seq_name))
+            
+            anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt'), delimiter=',')
+            if len(anchors.shape) == 1:
+                anchors = np.array([anchors])
+
+            for i in range(anchors.shape[0]):
+                start_idx = int(anchors[i,0])
+                end_idx = int(anchors[i,1])
+                inter_idx = int(anchors[i,2])
+
+                if inter_idx == 0:
+                    dir_str = 'LHI' 
+                elif direction == 1:
+                    dir_str = 'RHI' 
+                else:
+                    dir_str = 'BHI' 
+                print(f'HOI starting at {start_idx} ending at {end_idx} - Type {dir_str}')
+
+                # skip if results exist
+                record_file = os.path.join(
+                    self.result_dir, tracker.name, 'hoi', f'{seq_name}-hoi-{start_idx}-{end_idx}-{inter_idx}.txt')
+                if os.path.exists(record_file):
+                    print('  Found results, skipping', seq_name)
+                    continue
+
+                img_files_, anno_ = img_files[start_idx:end_idx+1], anno[start_idx:end_idx+1]
+
+                # tracking loop
+                boxes, _ = tracker.track(
+                    img_files_, anno_[0, :], visualize=visualize)
+                assert len(boxes) == len(anno_)
+
+                # record results
+                self._record(record_file, boxes)
+
     def report(self, tracker_names, protocol='ope'):
         if protocol == 'ope':
             self.report_ope(tracker_names)
@@ -204,6 +248,8 @@ class ExperimentTREK150(object):
             self.report_mse(tracker_names)
         elif protocol == 'rte':
             self.report_ope(tracker_names, realtime=True)
+        elif protocol == 'hoi':
+            self.report_hoi(tracker_names)
         
     def report_ope(self, tracker_names, realtime=False):
         assert isinstance(tracker_names, (list, tuple))
@@ -301,7 +347,7 @@ class ExperimentTREK150(object):
 
         return performance
 
-    def report_mse(self, tracker_names, report_type=None):
+    def report_mse(self, tracker_names):
         assert isinstance(tracker_names, (list, tuple))
 
         # assume tracker_names[0] is your tracker
@@ -353,6 +399,105 @@ class ExperimentTREK150(object):
                     else:
                         anno_ = anno[:anchor+1]
                         anno_ = anno_[::-1]
+
+                    boxes[0] = anno_[0]
+                    assert len(boxes) == len(anno_)
+
+                    ious, norm_center_errors = self._calc_metrics(boxes, anno_)
+                    succ_curve, norm_prec_curve = self._calc_curves(ious, norm_center_errors)
+                    gen_succ_rob_curve = self._calc_curves_robustness(ious)
+
+                    succ_score = np.mean(succ_curve) * anno_.shape[0]
+                    norm_prec_score = np.mean(norm_prec_curve) * anno_.shape[0]
+                    gen_succ_rob_score = np.mean(gen_succ_rob_curve) * anno_.shape[0]
+
+                    seq_succ_score += succ_score
+                    seq_norm_prec_score += norm_prec_score
+                    seq_gen_succ_rob_score += gen_succ_rob_score
+
+                    valid_frames += anno_.shape[0]
+                    
+                seq_succ_score /= valid_frames
+                seq_norm_prec_score /= valid_frames
+                seq_gen_succ_rob_score /= valid_frames
+
+                # store sequence-wise performance
+                performance[name]['seq_wise'].update({seq_name: {
+                    'success_score': seq_succ_score,
+                    'normalized_precision_score': seq_norm_prec_score,
+                    'generalized_success_robustness_score': seq_gen_succ_rob_score}})
+
+                overall_succ_score += (seq_succ_score * seq_length)
+                overall_norm_prec_score += (seq_norm_prec_score * seq_length)
+                overall_gen_succ_rob_score += (seq_gen_succ_rob_score * seq_length)
+
+                overall_seq_length += seq_length
+
+            overall_succ_score /= overall_seq_length
+            overall_norm_prec_score /= overall_seq_length
+            overall_gen_succ_rob_score /= overall_seq_length
+
+            # store overall performance
+            performance[name]['overall'].update({
+                'success_score': overall_succ_score,
+                'normalized_precision_score': overall_norm_prec_score,
+                'generalized_success_robustness_score': overall_gen_succ_rob_score})
+
+        # report the performance
+        with open(report_file, 'w') as f:
+            json.dump(performance, f, indent=4)
+
+        return performance
+
+    def report_hoi(self, tracker_names):
+        assert isinstance(tracker_names, (list, tuple))
+
+        # assume tracker_names[0] is your tracker
+        report_dir = os.path.join(self.report_dir, tracker_names[0])
+        if not os.path.isdir(report_dir):
+            os.makedirs(report_dir)
+
+        report_file = os.path.join(report_dir, 'performance-hoi.json')
+        
+        performance = {}
+        for name in tracker_names:
+            print('Evaluating', name)
+            seq_num = len(self.dataset)
+
+            overall_succ_score = 0.0
+            overall_norm_prec_score = 0.0
+            overall_gen_succ_rob_score = 0.0
+            overall_seq_length = 0
+
+            performance.update({name: {
+                'overall': {},
+                'seq_wise': {}}})
+
+            for s, (_, anno) in enumerate(self.dataset):
+                seq_name = self.dataset.seq_names[s]
+
+                anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt'), delimiter=',')
+                if len(anchors.shape) == 1:
+                    anchors = np.array([anchors])
+
+                seq_succ_score = 0.0
+                seq_norm_prec_score = 0.0
+                seq_gen_succ_rob_score = 0.0
+                valid_frames = 0
+
+                seq_length = anno.shape[0]
+
+                for i in range(anchors.shape[0]):
+                    start_idx = int(anchors[i,0])
+                    end_idx = int(anchors[i,1])
+                    inter_idx = int(anchors[i,2])
+
+                    record_file = os.path.join(
+                            self.result_dir, name, 'hoi', f'{seq_name}-hoi-{start_idx}-{end_idx}-{inter_idx}.txt')
+
+                    boxes = np.loadtxt(record_file, delimiter=',')
+
+                    anno_ = anno[start_idx:end_idx+1]
 
                     boxes[0] = anno_[0]
                     assert len(boxes) == len(anno_)

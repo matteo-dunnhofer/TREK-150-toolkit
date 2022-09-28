@@ -1,13 +1,14 @@
-# [Is First Person Vision Challenging for Object Tracking?](https://machinelearning.uniud.it/datasets/trek150/)
+# [Visual Object Tracking in First Person Vision](https://machinelearning.uniud.it/datasets/trek150/)
 ## The TREK-150 Benchmark Dataset and Toolkit
 
 <!-- start badges -->
+[![arXiv-2209.13502](https://img.shields.io/badge/arXiv-2209.13502-red.svg)](https://arxiv.org/abs/2209.13502)
 [![arXiv-2108.13665](https://img.shields.io/badge/arXiv-2108.13665-red.svg)](http://arxiv.org/abs/2108.13665)
 <!-- end badges -->
 
-![TREK-150](videoexamples.png)
+![TREK-150](videoexamples.jpg)
 
-> Understanding human-object interactions is fundamental in First Person Vision (FPV). Tracking algorithms which follow the objects manipulated by the camera wearer can provide useful cues to effectively model such interactions. Visual tracking solutions available in the computer vision literature have significantly improved their performance in the last years for a large variety of target objects and tracking scenarios. However, despite a few previous attempts to exploit trackers in FPV applications, a methodical analysis of the performance of state-of-the-art trackers in this domain is still missing. In this paper, we fill the gap by presenting the first systematic study of object tracking in FPV. Our study extensively analyses the performance of recent visual trackers and baseline FPV trackers with respect to different aspects and considering a new performance measure. This is achieved through TREK-150, a novel benchmark dataset composed of 150 densely annotated video sequences. Our results show that object tracking in FPV is challenging, which suggests that more research efforts should be devoted to this problem so that tracking could benefit FPV tasks.
+> The understanding of human-object interactions is fundamental in First Person Vision (FPV). Visual tracking algorithms which follow the objects manipulated by the camera wearer can provide useful information to effectively model such interactions. In the last years, the computer vision community has significantly improved the performance of tracking algorithms for a large variety of target objects and scenarios. Despite a few previous attempts to exploit trackers in the FPV domain, a methodical analysis of the performance of state-of-the-art trackers is still missing. This research gap raises the question of whether current solutions can be used ``off-the-shelf'' or more domain-specific investigations should be carried out. This paper aims to provide answers to such questions. We present the first systematic investigation of single object tracking in FPV. Our study extensively analyses the performance of 42 algorithms including generic object trackers and baseline FPV-specific trackers. The analysis is carried out by focusing on different aspects of the FPV setting, introducing new performance measures, and in relation to FPV-specific tasks. The study is made possible through the introduction of TREK-150, a novel benchmark dataset composed of 150 densely annotated video sequences. Our results show that object tracking in FPV poses new challenges to current visual trackers. We highlight the factors causing such behavior and point out possible research directions. Despite their difficulties, we prove that trackers bring benefits to FPV downstream tasks requiring short-term object tracking. We expect that generic object tracking will gain popularity in FPV as new and FPV-specific methodologies are investigated.
 
 ## Authors
 Matteo Dunnhofer (1)
@@ -25,6 +26,13 @@ Christian Micheloni (1)
 When using the dataset or toolkit, please reference:
 
 ```
+@article{TREK150ijcv,
+author = {Dunnhofer, Matteo and Furnari, Antonino and Farinella, Giovanni Maria and Micheloni, Christian},
+title = {Visual Object Tracking in First Person Vision},
+journal = {International Journal of Computer Vision (IJCV)},
+year = {2022}
+}
+
 @InProceedings{TREK150,
 author = {Dunnhofer, Matteo and Furnari, Antonino and Farinella, Giovanni Maria and Micheloni, Christian},
 title = {Is First Person Vision Challenging for Object Tracking?},
@@ -59,6 +67,12 @@ and the following ```*.txt``` files:
  - ```attributes.txt```: Contains the tracking attributes of the sequence. The file reports line-separated strings that depend on the tracking situations happening in the sequence. The strings are acronyms and explanations can be found in Table 2 of the main paper.
  - ```frames.txt```: Contains the frame indices of the sequence with respect to the full EK-55 video.
  - ```anchors.txt```: Contains the frame indices of the starting points (anchors) and the direction of evaluation (0 -> forward in time, 1 -> backward in time) to implement the MSE (multi-start evaluation) protocol.
+  - ```lh_rect.txt```: Contains the ground-truth bounding-boxes of the camera wearer's left hand. The comma-separated values on each line represent the bounding-box locations [x,y,w,h] (coordinates of the top-left corner, and width and height) of hand at each respective frame (1st line -> target location for the 1st frame, last line -> hand location for the last frame). A line with values -1,-1,-1,-1 specifies that the hand is not visible in such a frame.
+ - ```rh_rect.txt```: Contains the ground-truth bounding-boxes of the camera wearer's right hand. The comma-separated values on each line represent the bounding-box locations [x,y,w,h] (coordinates of the top-left corner, and width and height) of hand at each respective frame (1st line -> target location for the 1st frame, last line -> hand location for the last frame). A line with values -1,-1,-1,-1 specifies that the hand is not visible in such a frame.
+ - ```lhi_labels.txt```: Contains the ground-truth labels expressing whether the camera wearer's left hand is in contact with the target object. The binary values on each line represent the presence of contact (0 -> no contact, 1 -> contact) between hand and object at each respective frame (1st line -> interaction for the 1st frame, last line -> interaction for the last frame).
+ - ```rhi_labels.txt```: Contains the ground-truth labels expressing whether the camera wearer's right hand is in contact with the target object. The binary values on each line represent the presence of contact (0 -> no contact, 1 -> contact) between hand and object at each respective frame (1st line -> interaction for the 1st frame, last line -> interaction for the last frame).
+ - ```bhi_labels.txt```: Contains the ground-truth labels expressing whether both camera wearer's hands are in contact with the target object. The binary values on each line represent the presence of contact (0 -> no contact, 1 -> contact) between hands and object at each respective frame (1st line -> interaction for the 1st frame, last line -> interaction for the last frame).
+ - ```anchors_hoi.txt```: Contains the frame indices of the starting and ending points (anchors) and the type of interaction(0 -> left hand interaction, 1 -> right hand interaction, 2 -> both hands interaction) to implement the HOI (hand object interaction evaluation) protocol.
 
 The code was tested with Python 3.7.9 and ```ffmpeg``` 4.0.2. All the temporary files (e.g. ```*.MP4``` files, not relevant frames) generated during the download procedure will be removed automatically after the process is completed. The download process can be resumed from the last downloaded sequence if prematurely stopped.
 
@@ -106,4 +120,4 @@ and indicate if changes were made. You may do so in any reasonable manner,
 but not in any way that suggests the licensor endorses you or your use. You
 may not use the material for commercial purposes.
 
-Copyright © Machine Learning and Perception Lab - University of Udine - 2021
+Copyright © Machine Learning and Perception Lab - University of Udine - 2021 - 2022
