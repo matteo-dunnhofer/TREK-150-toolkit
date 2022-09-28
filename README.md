@@ -26,14 +26,14 @@ Christian Micheloni (1)
 When using the dataset or toolkit, please reference:
 
 ```
-@article{TREK150ijcv,
+@Article{TREK150ijcv,
 author = {Dunnhofer, Matteo and Furnari, Antonino and Farinella, Giovanni Maria and Micheloni, Christian},
 title = {Visual Object Tracking in First Person Vision},
 journal = {International Journal of Computer Vision (IJCV)},
 year = {2022}
 }
 
-@InProceedings{TREK150,
+@InProceedings{TREK150iccvw,
 author = {Dunnhofer, Matteo and Furnari, Antonino and Farinella, Giovanni Maria and Micheloni, Christian},
 title = {Is First Person Vision Challenging for Object Tracking?},
 booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) Workshops},
