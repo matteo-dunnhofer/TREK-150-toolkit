@@ -15,6 +15,7 @@ import glob
 from ..datasets import TREK150
 from ..utils.metrics import rect_iou, center_error, normalized_center_error
 from ..utils.viz import show_frame
+from ..utils.ioutils import compress_file
 
 class ExperimentTREK150(object):
     r"""Experiment pipeline and evaluation toolkit for the TREK-150 dataset.
@@ -467,7 +468,9 @@ class ExperimentTREK150(object):
             overall_succ_score = 0.0
             overall_norm_prec_score = 0.0
             overall_gen_succ_rob_score = 0.0
+            overall_recall_score = 0.0
             overall_seq_length = 0
+            valid_frames = 0
 
             performance.update({name: {
                 'overall': {},
@@ -479,11 +482,6 @@ class ExperimentTREK150(object):
                 anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt'), delimiter=',')
                 if len(anchors.shape) == 1:
                     anchors = np.array([anchors])
-
-                seq_succ_score = 0.0
-                seq_norm_prec_score = 0.0
-                seq_gen_succ_rob_score = 0.0
-                valid_frames = 0
 
                 seq_length = anno.shape[0]
 
@@ -509,38 +507,28 @@ class ExperimentTREK150(object):
                     succ_score = np.mean(succ_curve) * anno_.shape[0]
                     norm_prec_score = np.mean(norm_prec_curve) * anno_.shape[0]
                     gen_succ_rob_score = np.mean(gen_succ_rob_curve) * anno_.shape[0]
-
-                    seq_succ_score += succ_score
-                    seq_norm_prec_score += norm_prec_score
-                    seq_gen_succ_rob_score += gen_succ_rob_score
+                    recall_score = np.mean((ious >= 0.5).astype(np.float32)) * anno_.shape[0]
 
                     valid_frames += anno_.shape[0]
-                    
-                seq_succ_score /= valid_frames
-                seq_norm_prec_score /= valid_frames
-                seq_gen_succ_rob_score /= valid_frames
 
-                # store sequence-wise performance
-                performance[name]['seq_wise'].update({seq_name: {
-                    'success_score': seq_succ_score,
-                    'normalized_precision_score': seq_norm_prec_score,
-                    'generalized_success_robustness_score': seq_gen_succ_rob_score}})
+                    overall_succ_score += succ_score
+                    overall_norm_prec_score += norm_prec_score
+                    overall_gen_succ_rob_score += gen_succ_rob_score
+                    overall_recall_score += recall_score
 
-                overall_succ_score += (seq_succ_score * seq_length)
-                overall_norm_prec_score += (seq_norm_prec_score * seq_length)
-                overall_gen_succ_rob_score += (seq_gen_succ_rob_score * seq_length)
+                    overall_seq_length += seq_length
 
-                overall_seq_length += seq_length
-
-            overall_succ_score /= overall_seq_length
-            overall_norm_prec_score /= overall_seq_length
-            overall_gen_succ_rob_score /= overall_seq_length
+            overall_succ_score /= valid_frames
+            overall_norm_prec_score /= valid_frames
+            overall_gen_succ_rob_score /= valid_frames
+            overall_recall_score /= valid_frames
 
             # store overall performance
             performance[name]['overall'].update({
                 'success_score': overall_succ_score,
                 'normalized_precision_score': overall_norm_prec_score,
-                'generalized_success_robustness_score': overall_gen_succ_rob_score})
+                'generalized_success_robustness_score': overall_gen_succ_rob_score,
+                'recall_score': overall_recall_score})
 
         # report the performance
         with open(report_file, 'w') as f:
@@ -739,3 +727,85 @@ class ExperimentTREK150(object):
 
         print('Saving generalized robustness plots to', gen_succ_rob_file)
         fig.savefig(gen_succ_rob_file, dpi=300)
+
+    def export_results_for_challenge(self, name):
+        print(f'Exporting {name} for challenge. This might take a while...')
+
+        submission_file_json = os.path.join(f'challenge-submission.json')
+        submission_file_zip = os.path.join(f'challenge-submission.zip')
+
+        submission_dict = {}
+        submission_dict['challenge'] = 'object_tracking'
+        submission_dict['version'] = '0.1'
+        submission_dict['tracker_name'] = name
+        submission_dict['results']  = {}
+        submission_dict['results']['ope']  = {}
+        submission_dict['results']['mse']  = {}
+        submission_dict['results']['hoi']  = {}
+
+        for s, (_, anno) in enumerate(self.dataset):
+            seq_name = self.dataset.seq_names[s]
+
+
+            ### exporting OPE results
+            record_file = os.path.join(
+                        self.result_dir, name, 'ope', f'{seq_name}.txt')
+
+            boxes = np.loadtxt(record_file, delimiter=',')
+
+            submission_dict['results']['ope'][f'{seq_name}'] = boxes.tolist()
+            
+
+            #### exporting MSE results
+            anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors.txt'), delimiter=',')
+            if len(anchors.shape) == 1:
+                anchors = np.array([anchors])
+
+            seq_length = anno.shape[0]
+
+            submission_dict['results']['mse'][f'{seq_name}'] = {}
+
+            for i in range(anchors.shape[0]):
+                anchor = int(anchors[i,0])
+                direction = int(anchors[i,1])
+
+                record_file = os.path.join(
+                        self.result_dir, name, 'mse', f'{seq_name}-anchor-{anchor}.txt')
+
+                boxes = np.loadtxt(record_file, delimiter=',')
+
+                submission_dict['results']['mse'][f'{seq_name}'][f'anchor-{anchor}'] = boxes.tolist()
+
+
+            #### exporting HOI results
+            hoi_anchors_path = os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt')
+            if os.path.exists(hoi_anchors_path):
+                hoi_anchors = np.loadtxt(hoi_anchors_path, delimiter=',')
+                if len(hoi_anchors.shape) == 1:
+                    hoi_anchors = np.array([hoi_anchors])
+
+                submission_dict['results']['hoi'][f'{seq_name}'] = {}
+
+                for i in range(hoi_anchors.shape[0]):
+                    start_idx = int(hoi_anchors[i,0])
+                    end_idx = int(hoi_anchors[i,1])
+                    inter_idx = int(hoi_anchors[i,2])
+
+                    record_file = os.path.join(
+                            self.result_dir, name, 'hoi', f'{seq_name}-hoi-{start_idx}-{end_idx}-{inter_idx}.txt')
+
+                    boxes = np.loadtxt(record_file, delimiter=',')
+
+                    submission_dict['results']['hoi'][f'{seq_name}'][f'hoi-{start_idx}-{end_idx}-{inter_idx}'] = boxes.tolist()
+
+
+        # report the performance
+        json_str = json.dumps(submission_dict, indent=4, ensure_ascii=False)
+        with open(submission_file_json, 'w', encoding='utf-8') as f:
+            f.write(json_str)
+            f.close()
+
+        print(f'Submission json file saved to {submission_file_json}')
+
+        compress_file(submission_file_zip, submission_file_json)
+        print(f'Submission json file compressed to {submission_file_zip}')
