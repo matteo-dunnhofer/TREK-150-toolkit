@@ -738,6 +738,9 @@ class ExperimentTREK150(object):
         submission_dict['challenge'] = 'object_tracking'
         submission_dict['version'] = '0.1'
         submission_dict['tracker_name'] = name
+        submission_dict['sls_pt'] = -1
+        submission_dict['sls_tl'] = -1
+        submission_dict['sls_td'] = -1
         submission_dict['results']  = {}
         submission_dict['results']['ope']  = {}
         submission_dict['results']['mse']  = {}
