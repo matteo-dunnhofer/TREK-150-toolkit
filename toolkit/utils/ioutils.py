@@ -36,7 +36,7 @@ def extract(filename, extract_dir):
             os.path.splitext(filename)[1]), filename)
 
 
-def compress(dirname, save_file):
+def compress_file(dirname, save_file):
     """Compress a folder to a zip file.
     
     Arguments:
