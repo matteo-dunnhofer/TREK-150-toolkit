@@ -208,39 +208,40 @@ class ExperimentTREK150(object):
             seq_name = self.dataset.seq_names[s]
             print('--Sequence %d/%d: %s' % (s + 1, len(self.dataset), seq_name))
             
-            anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt'), delimiter=',')
-            if len(anchors.shape) == 1:
-                anchors = np.array([anchors])
+            if os.path.exists(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt')):
+                anchors = np.loadtxt(os.path.join(self.root_dir, seq_name, 'anchors_hoi.txt'), delimiter=',')
+                if len(anchors.shape) == 1:
+                    anchors = np.array([anchors])
 
-            for i in range(anchors.shape[0]):
-                start_idx = int(anchors[i,0])
-                end_idx = int(anchors[i,1])
-                inter_idx = int(anchors[i,2])
+                for i in range(anchors.shape[0]):
+                    start_idx = int(anchors[i,0])
+                    end_idx = int(anchors[i,1])
+                    inter_idx = int(anchors[i,2])
 
-                if inter_idx == 0:
-                    dir_str = 'LHI' 
-                elif direction == 1:
-                    dir_str = 'RHI' 
-                else:
-                    dir_str = 'BHI' 
-                print(f'HOI starting at {start_idx} ending at {end_idx} - Type {dir_str}')
+                    if inter_idx == 0:
+                        dir_str = 'LHI' 
+                    elif direction == 1:
+                        dir_str = 'RHI' 
+                    else:
+                        dir_str = 'BHI' 
+                    print(f'HOI starting at {start_idx} ending at {end_idx} - Type {dir_str}')
 
-                # skip if results exist
-                record_file = os.path.join(
-                    self.result_dir, tracker.name, 'hoi', f'{seq_name}-hoi-{start_idx}-{end_idx}-{inter_idx}.txt')
-                if os.path.exists(record_file):
-                    print('  Found results, skipping', seq_name)
-                    continue
+                    # skip if results exist
+                    record_file = os.path.join(
+                        self.result_dir, tracker.name, 'hoi', f'{seq_name}-hoi-{start_idx}-{end_idx}-{inter_idx}.txt')
+                    if os.path.exists(record_file):
+                        print('  Found results, skipping', seq_name)
+                        continue
 
-                img_files_, anno_ = img_files[start_idx:end_idx+1], anno[start_idx:end_idx+1]
+                    img_files_, anno_ = img_files[start_idx:end_idx+1], anno[start_idx:end_idx+1]
 
-                # tracking loop
-                boxes, _ = tracker.track(
-                    img_files_, anno_[0, :], visualize=visualize)
-                assert len(boxes) == len(anno_)
+                    # tracking loop
+                    boxes, _ = tracker.track(
+                        img_files_, anno_[0, :], visualize=visualize)
+                    assert len(boxes) == len(anno_)
 
-                # record results
-                self._record(record_file, boxes)
+                    # record results
+                    self._record(record_file, boxes)
 
     def report(self, tracker_names, protocol='ope'):
         if protocol == 'ope':
