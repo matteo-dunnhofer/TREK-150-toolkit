@@ -220,7 +220,7 @@ class ExperimentTREK150(object):
 
                     if inter_idx == 0:
                         dir_str = 'LHI' 
-                    elif direction == 1:
+                    elif inter_idx == 1:
                         dir_str = 'RHI' 
                     else:
                         dir_str = 'BHI' 
