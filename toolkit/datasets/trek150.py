@@ -72,7 +72,7 @@ class TREK150(object):
             os.makedirs(root_dir)
     
         # Download list of sequences
-        seqs_file = os.path.join(root_dir, 'sequences.txt')
+        seqs_file = os.path.join(root_dir, 'TREK-150-annotations', 'sequences.txt')
         if not os.path.exists(seqs_file):
             # Download the archive containing the annotations
             anno_zip_file = os.path.join(root_dir, 'TREK-150-annotations.zip')
@@ -99,7 +99,7 @@ class TREK150(object):
                (not os.path.exists(os.path.join(seq_dir, 'action_target.txt'))):
 
                 # Extract annotations
-                zip_file = os.path.join(root_dir, seq_name + '.zip')
+                zip_file = os.path.join(root_dir, 'TREK-150-annotations', seq_name + '.zip')
         
                 print('\n\tExtracting annotation to %s...' % root_dir)
                 extract(zip_file, seq_dir)
