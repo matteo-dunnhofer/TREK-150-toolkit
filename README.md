@@ -1,3 +1,5 @@
+## News: [[VISTA benchmark](https://machinelearning.uniud.it/datasets/vista/) toolkit coming soon here!]
+
 # [Visual Object Tracking in First Person Vision](https://machinelearning.uniud.it/datasets/trek150/)
 ## The TREK-150 Benchmark Dataset and Toolkit
 
