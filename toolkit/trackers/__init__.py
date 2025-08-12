@@ -19,10 +19,13 @@ class Tracker(object):
     def update(self, image):
         raise NotImplementedError()
 
-    def track(self, img_files, box, visualize=False):
+    def track(self, img_files, anno, visualize=False):
         frame_num = len(img_files)
-        boxes = np.zeros((frame_num, 4))
-        boxes[0] = box
+        if len(anno.shape) == 1:
+            preds = np.zeros((frame_num, anno.shape[0]))
+        else:
+            preds = np.zeros((frame_num, anno.shape[0], anno.shape[1]))
+        preds[0] = anno
         times = np.zeros(frame_num)
 
         for f, img_file in enumerate(img_files):
@@ -32,15 +35,15 @@ class Tracker(object):
 
             start_time = time.time()
             if f == 0:
-                self.init(image, box)
+                self.init(image, anno)
             else:
-                boxes[f, :] = self.update(image)
+                preds[f, :] = self.update(image)
             times[f] = time.time() - start_time
 
             if visualize:
-                show_frame(image, boxes[f, :])
+                show_frame(image, preds[f, :])
 
-        return boxes, times
+        return preds, times
 
 
 from .identity_tracker import IdentityTracker
