@@ -6,7 +6,7 @@
 [![arXiv-2507.16015](https://img.shields.io/badge/arXiv-2209.13502-red.svg)](https://arxiv.org/abs/2507.16015)
 <!-- end badges -->
 
-![VISTA](vista.jpg)
+![VISTA](vista.png)
 
 > Visual object tracking and segmentation are becoming fundamental tasks for understanding human activities in egocentric vision. Recent research has benchmarked state-of-the-art methods and concluded that first person egocentric vision presents challenges compared to previously studied domains. However, these claims are based on evaluations conducted across significantly different scenarios. Many of the challenging characteristics attributed to egocentric vision are also present in third person videos of human-object activities. This raises a critical question: how much of the observed performance drop stems from the unique first person viewpoint inherent to egocentric vision versus the domain of human-object activities? To address this question, we introduce a new benchmark study designed to disentangle such factors. Our evaluation strategy enables a more precise separation of challenges related to the first person perspective from those linked to the broader domain of human-object activity understanding. By doing so, we provide deeper insights into the true sources of difficulty in egocentric tracking and segmentation, facilitating more targeted advancements on this task.
 
@@ -25,7 +25,7 @@ Christian Micheloni (1)
 When using the dataset or toolkit, please reference:
 
 ```
-@InProceedings{vista,
+@InProceedings{VISTAiccv,
 author = {Dunnhofer, Matteo and Manigrasso, Zaira and Micheloni, Christian},
 title = {Is Tracking really more challenging in First Person Egocentric Vision?},
 booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},

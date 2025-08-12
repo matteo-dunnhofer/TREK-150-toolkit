@@ -1,6 +1,6 @@
 # Visual Object Tracking in First Person Egocentric Vision
 
-![VISTA](vista.jpg)
+![VISTA](vista.png)
 
 This repository helps you implement and evaluate visual object tracking and segmentation (both bounding-box-based and mask-based algorithms) on first-person egocentric datasets. Specifically, the code allows you to reproduce the experiments and results from our recent papers:
 
@@ -22,7 +22,7 @@ For instructions on how to download and use the toolkit to run experiments on th
 When using the datasets or toolkit, please reference:
 
 ```
-@InProceedings{vista,
+@InProceedings{VISTAiccv,
 author = {Dunnhofer, Matteo and Manigrasso, Zaira and Micheloni, Christian},
 title = {Is Tracking really more challenging in First Person Egocentric Vision?},
 booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
